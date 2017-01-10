@@ -19,7 +19,9 @@ namespace UKLepraBot
         private static bool _isActive = true;
         private static bool _isEchoMode;
         private static Random _rnd = new Random();
-        private static Dictionary<Int64, int> _delay = new Dictionary<long, int>();
+        private static Dictionary<string, Tuple<int, int>> _delaySettings = new Dictionary<string, Tuple<int, int>>();
+        private static Dictionary<string, int> _delay = new Dictionary<string, int>();
+        private static Dictionary<string, bool> _state = new Dictionary<string, bool>();
         
         /// <summary>
         /// POST: api/Messages
@@ -46,19 +48,90 @@ namespace UKLepraBot
         private async Task HandleMessage(Activity activity)
         {          
             var messageText = Convert.ToString(activity.Text);
+            var conversationId = activity.Conversation.Id;
             if (string.IsNullOrEmpty(messageText)) return;
 
             var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
 
             if (activity.MentionsId(BotId) && messageText.ToLower().Contains("/delay"))
             {
-                await Conversation.SendAsync(activity, delegate()
+                /*await Conversation.SendAsync(activity, delegate()
                 {
                     var chatId = Convert.ToInt64(activity.Conversation.Id);
 
                     var delayDialogue = new DelayDialogue() {ChatId = chatId};                    
                     return delayDialogue;
-                });
+                });*/
+                var reply = activity.CreateReply();
+                reply.Locale = "ru";
+                var messageParts = messageText.Split(new[] {" "}, StringSplitOptions.RemoveEmptyEntries);
+                if (messageParts.Length == 1)
+                {
+                    var currentDelay = new Tuple<int, int>(0, 4);
+                    if(_delaySettings.ContainsKey(conversationId))
+                        currentDelay = _delaySettings[conversationId];
+
+                    reply.Text = $"Сейчас я пропускаю случайное число сообщений от {currentDelay.Item1} до {currentDelay.Item2}";
+                }
+                else if (messageParts.Length == 2)
+                {
+                    int newMaxDelay;
+                    if (!int.TryParse(messageParts[1], out newMaxDelay))
+                    {
+                        reply.Text = "Неправильный аргумент, отправьте /delay N [[M]], где N, M любое натуральное число";
+                    }
+                    else
+                    {
+                        _delaySettings[conversationId] = new Tuple<int, int>(0, newMaxDelay);
+                        reply.Text = $"Я буду пропускать случайное число сообщений от 0 до {newMaxDelay}";
+                    }
+                }
+                else if (messageParts.Length == 3)
+                {
+                    int newMaxDelay;
+                    int newMinDelay;
+                    if (!int.TryParse(messageParts[2], out newMaxDelay))
+                    {
+                        reply.Text = "Неправильный аргумент, отправьте /delay N [[M]], где N, M любое натуральное число";
+                    }
+                    else if (!int.TryParse(messageParts[1], out newMinDelay))
+                    {
+                        reply.Text = "Неправильный аргумент, отправьте /delay N [[M]], где N, M любое натуральное число";
+                    }
+                    else
+                    {
+                        if (newMinDelay == newMaxDelay)
+                        {
+                            newMinDelay = 0;                            
+                        }
+                        else if (newMinDelay > newMaxDelay)
+                        {
+                            var i = newMinDelay;
+                            newMinDelay = newMaxDelay;
+                            newMaxDelay = i;
+                        }
+
+                        _delaySettings[conversationId] = new Tuple<int, int>(newMinDelay, newMaxDelay);
+                        reply.Text = $"Я буду пропускать случайное число сообщений от {newMinDelay} до {newMaxDelay}";
+                    }
+                }
+                await connector.Conversations.ReplyToActivityAsync(reply);
+            }
+            else if (activity.MentionsId(BotId) && messageText.ToLower().Contains("/huify"))
+            {
+                var reply = activity.CreateReply();
+                reply.Text = "Хуятор успешно активирован.";
+                reply.Locale = "ru";
+                await connector.Conversations.ReplyToActivityAsync(reply);
+                _state[conversationId] = true;
+            }
+            else if (activity.MentionsId(BotId) && messageText.ToLower().Contains("/unhuify"))
+            {
+                var reply = activity.CreateReply();
+                reply.Text = "Хуятор успешно деактивирован.";
+                reply.Locale = "ru";
+                await connector.Conversations.ReplyToActivityAsync(reply);
+                _state[conversationId] = false;
             }
             else if (messageText.ToLower().Contains("слава роботам"))
             {
@@ -108,6 +181,41 @@ namespace UKLepraBot
                 };
                 reply.ChannelData = channelData;
                 await connector.Conversations.ReplyToActivityAsync(reply);
+            }/*
+            else if(messageText.ToLower().Contains("/secret") && activity.Conversation.Id == "178846839")
+            {
+                
+            }*/
+            else if(_state.ContainsKey(conversationId) && _state[conversationId])
+            {
+                if (_delay.ContainsKey(conversationId))
+                    _delay[conversationId] -= 1;
+                else
+                {
+                    Tuple<int, int> delaySetting;
+                    if (_delaySettings.TryGetValue(conversationId, out delaySetting))
+                    {
+                        _delay[conversationId] = _rnd.Next(delaySetting.Item1, delaySetting.Item2 + 1);
+                    }
+                    else
+                    {
+                        _delay[conversationId] = _rnd.Next(4);
+                    }
+                }
+
+                if (_delay[conversationId] == 0)
+                {
+                    _delay.Remove(conversationId);
+                    var huifiedMessage = Huify.HuifyMe(messageText);
+                    if (!String.IsNullOrEmpty(huifiedMessage))
+                    {
+                        var reply = activity.CreateReply();
+                        reply.Text = huifiedMessage;
+                        reply.Locale = "ru";
+                        await connector.Conversations.ReplyToActivityAsync(reply);
+                    }
+                }
+
             }
 
             /*  
