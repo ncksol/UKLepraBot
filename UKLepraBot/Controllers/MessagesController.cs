@@ -133,6 +133,46 @@ namespace UKLepraBot
                 await connector.Conversations.ReplyToActivityAsync(reply);
                 _state[conversationId] = false;
             }
+            else if (activity.MentionsId(BotId) && messageText.ToLower().Contains("/status"))
+            {
+                var state = _state.ContainsKey(conversationId) ? _state[conversationId] : (bool?)null;
+                var currentDelay = _delay.ContainsKey(conversationId) ? _delay[conversationId] : (int?) null;
+                var delaySettings = _delaySettings.ContainsKey(conversationId) ? _delaySettings[conversationId] : null;
+
+                var reply = activity.CreateReply();
+                if (!state.HasValue)
+                {
+                    reply.Text = "Хуятор не инициализирован." + Environment.NewLine;
+                }
+                else if (state.Value)
+                {
+                    reply.Text = "Хуятор активирован." + Environment.NewLine;
+                }
+                else
+                {
+                    reply.Text = "Хуятор не активирован." + Environment.NewLine;
+                }
+
+                if (!currentDelay.HasValue)
+                {
+                    reply.Text += "Я не знаю когда отреагирую в следующий раз." + Environment.NewLine;
+                }
+                else
+                {
+                    reply.Text += $"В следующий раз я отреагирую через {currentDelay.Value} сообщений" + Environment.NewLine;
+                }
+
+                if (delaySettings == null)
+                {
+                    reply.Text += "Настройки задержки не найдены. Использую стандартные от 0 до 4 сообщений.";
+                }
+                else
+                {
+                    reply.Text += $"Сейчас я пропускаю случайное число сообщений от {delaySettings.Item1} до {delaySettings.Item2}";
+                }
+
+                await connector.Conversations.ReplyToActivityAsync(reply);
+            }
             else if (messageText.ToLower().Contains("слава роботам"))
             {
                 var reply = activity.CreateReply();
