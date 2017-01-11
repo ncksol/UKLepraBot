@@ -66,7 +66,7 @@ namespace UKLepraBot
             word = nonLettersPattern.Replace(word.ToLower(), "");
             if (word == "бот")
             {
-                return prefix + " хуебот";
+                return (string.IsNullOrEmpty(prefix) ? "" : prefix + " ") + "хуебот";
             }
 
             if (onlyDashesPattern.IsMatch(word))
@@ -83,23 +83,23 @@ namespace UKLepraBot
             {
                 if (!vowels.Contains(foo))
                 {
-                    return prefix + " ху" + rules[postFix.Substring(0, 1)] + postFix.Substring(1);
+                    return (string.IsNullOrEmpty(prefix) ? "" : prefix + " ") + "ху" + rules[postFix.Substring(0, 1)] + postFix.Substring(1);
                 }
                 else
                 {
                     if (rules.ContainsKey(foo))
                     {
-                        return prefix + " ху" + rules[foo] + postFix.Substring(2);
+                        return (string.IsNullOrEmpty(prefix) ? "" : prefix + " ") + "ху" + rules[foo] + postFix.Substring(2);
                     }
                     else
                     {
-                        return prefix + " ху" + postFix.Substring(1);
+                        return (string.IsNullOrEmpty(prefix) ? "" : prefix + " ") + "ху" + postFix.Substring(1);
                     }
                 }
             }
             else
             {
-                return prefix + " ху" + postFix;
+                return (string.IsNullOrEmpty(prefix) ? "" : prefix + " ") + "ху" + postFix;
             }
         }
     }
