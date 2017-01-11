@@ -36,6 +36,7 @@ namespace UKLepraBot
             return huifiedMessage;
         }
 
+
         private static string HuifyMeInternal(string message)
         {
             var vowels = "оеаяуюы";
@@ -51,13 +52,21 @@ namespace UKLepraBot
             var onlyDashesPattern = new Regex("^-*$");
             var prefixPattern = new Regex("^[бвгджзйклмнпрстфхцчшщьъ]+");
 
-            var messageParts = message.Split(new []{" "}, StringSplitOptions.RemoveEmptyEntries);
-            if(messageParts.Length > 3 || messageParts.Length < 1) return String.Empty;
+            var messageParts = message.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+            if (messageParts.Length < 1) return String.Empty;
 
-            var word = nonLettersPattern.Replace(message.ToLower(), "");
+            var word = messageParts[messageParts.Length - 1];
+            var prefix = string.Empty;
+
+            if (messageParts.Length > 1)
+            {
+                prefix = messageParts[messageParts.Length - 2];
+            }
+
+            word = nonLettersPattern.Replace(word.ToLower(), "");
             if (word == "бот")
             {
-                return "хуебот";
+                return prefix + " хуебот";
             }
 
             if (onlyDashesPattern.IsMatch(word))
@@ -74,23 +83,23 @@ namespace UKLepraBot
             {
                 if (!vowels.Contains(foo))
                 {
-                    return "ху" + rules[postFix.Substring(0, 1)] + postFix.Substring(1);
+                    return prefix + " ху" + rules[postFix.Substring(0, 1)] + postFix.Substring(1);
                 }
                 else
                 {
                     if (rules.ContainsKey(foo))
                     {
-                        return "ху" + rules[foo] + postFix.Substring(2);
+                        return prefix + " ху" + rules[foo] + postFix.Substring(2);
                     }
                     else
                     {
-                        return "ху" + postFix.Substring(1);
+                        return prefix + " ху" + postFix.Substring(1);
                     }
                 }
             }
             else
             {
-                return "ху" + postFix;
+                return prefix + " ху" + postFix;
             }
         }
     }
