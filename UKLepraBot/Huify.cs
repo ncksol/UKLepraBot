@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -8,6 +9,9 @@ namespace UKLepraBot
 {
     public class Huify
     {
+        private static Random _rnd = new Random();
+
+
         private static List<string> _suggestions = new List<string>
         {
             "Возможно, вы имели ввиду: ",
@@ -51,14 +55,14 @@ namespace UKLepraBot
             var nonLettersPattern = new Regex("[^а-яё-]+");
             var onlyDashesPattern = new Regex("^-*$");
             var prefixPattern = new Regex("^[бвгджзйклмнпрстфхцчшщьъ]+");
-
+            
             var messageParts = message.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
             if (messageParts.Length < 1) return String.Empty;
 
             var word = messageParts[messageParts.Length - 1];
             var prefix = string.Empty;
 
-            if (messageParts.Length > 1)
+            if (messageParts.Length > 1 && _rnd.Next(0, 1) == 1)
             {
                 prefix = messageParts[messageParts.Length - 2];
             }
