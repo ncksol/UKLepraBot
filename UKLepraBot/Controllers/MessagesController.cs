@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Http.Description;
 using Microsoft.Bot.Builder.Dialogs;
@@ -15,174 +17,68 @@ namespace UKLepraBot
     [BotAuthentication]
     public class MessagesController : ApiController
     {
-        private const string BotId = "ukleprabot";
+        private const string TelegramBotId = "ukleprabot";
         private static bool _isActive = true;
-        private static bool _isEchoMode;
         private static Random _rnd = new Random();
-        private static Dictionary<string, Tuple<int, int>> _delaySettings = new Dictionary<string, Tuple<int, int>>();
-        private static Dictionary<string, int> _delay = new Dictionary<string, int>();
-        private static Dictionary<string, bool> _state = new Dictionary<string, bool>();
-        
+
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
         /// </summary>
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
-            if (activity.Type == ActivityTypes.Message)
+            try
             {
-                await HandleMessage(activity);
+                if (activity.Type == ActivityTypes.Message)
+                {
+                    await HandleMessage(activity);
+                }
+                else if (activity.Type == ActivityTypes.ConversationUpdate)
+                {
+                    await HandleConversationUpdate(activity);
+                }
+                else
+                {
+                    HandleSystemMessage(activity);
+                }
             }
-            else if (activity.Type == ActivityTypes.ConversationUpdate)
+            catch (Exception e)
             {
-                await HandleConversationUpdate(activity);
+                ReportException(e);
             }
-            else
-            {
-                HandleSystemMessage(activity);
-            }
+
             var response = Request.CreateResponse(HttpStatusCode.OK);
             return response;
         }
 
         private async Task HandleMessage(Activity activity)
-        {          
+        {
             var messageText = Convert.ToString(activity.Text);
             var conversationId = activity.Conversation.Id;
             if (string.IsNullOrEmpty(messageText)) return;
 
-            var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
+            var connector = new ConnectorClient(new Uri(activity.ServiceUrl));           
 
-            if (activity.MentionsId(BotId) && messageText.ToLower().Contains("/delay"))
+            if (MentionsId(activity, TelegramBotId) && messageText.ToLower().Contains("/delay"))
             {
-                /*await Conversation.SendAsync(activity, delegate()
-                {
-                    var chatId = Convert.ToInt64(activity.Conversation.Id);
-
-                    var delayDialogue = new DelayDialogue() {ChatId = chatId};                    
-                    return delayDialogue;
-                });*/
-                var reply = activity.CreateReply();
-                reply.Locale = "ru";
-                var messageParts = messageText.Split(new[] {" "}, StringSplitOptions.RemoveEmptyEntries);
-                if (messageParts.Length == 1)
-                {
-                    var currentDelay = new Tuple<int, int>(0, 4);
-                    if(_delaySettings.ContainsKey(conversationId))
-                        currentDelay = _delaySettings[conversationId];
-
-                    reply.Text = $"Сейчас я пропускаю случайное число сообщений от {currentDelay.Item1} до {currentDelay.Item2}";
-                }
-                else if (messageParts.Length == 2)
-                {
-                    int newMaxDelay;
-                    if (!int.TryParse(messageParts[1], out newMaxDelay))
-                    {
-                        reply.Text = "Неправильный аргумент, отправьте /delay N [[M]], где N, M любое натуральное число";
-                    }
-                    else
-                    {
-                        _delaySettings[conversationId] = new Tuple<int, int>(0, newMaxDelay);
-                        reply.Text = $"Я буду пропускать случайное число сообщений от 0 до {newMaxDelay}";
-                    }
-                }
-                else if (messageParts.Length == 3)
-                {
-                    int newMaxDelay;
-                    int newMinDelay;
-                    if (!int.TryParse(messageParts[2], out newMaxDelay))
-                    {
-                        reply.Text = "Неправильный аргумент, отправьте /delay N [[M]], где N, M любое натуральное число";
-                    }
-                    else if (!int.TryParse(messageParts[1], out newMinDelay))
-                    {
-                        reply.Text = "Неправильный аргумент, отправьте /delay N [[M]], где N, M любое натуральное число";
-                    }
-                    else
-                    {
-                        if (newMinDelay == newMaxDelay)
-                        {
-                            newMinDelay = 0;                            
-                        }
-                        else if (newMinDelay > newMaxDelay)
-                        {
-                            var i = newMinDelay;
-                            newMinDelay = newMaxDelay;
-                            newMaxDelay = i;
-                        }
-
-                        _delaySettings[conversationId] = new Tuple<int, int>(newMinDelay, newMaxDelay);
-                        reply.Text = $"Я буду пропускать случайное число сообщений от {newMinDelay} до {newMaxDelay}";
-                    }
-                }
-                await connector.Conversations.ReplyToActivityAsync(reply);
+                var delayAdapter = new DelayAdapter(connector);
+                await delayAdapter.Process(activity);
             }
-            else if (activity.MentionsId(BotId) && messageText.ToLower().Contains("/huify"))
+            else if (MentionsId(activity, TelegramBotId) && (messageText.ToLower().Contains("/status") || messageText.ToLower().Contains("/huify") || messageText.ToLower().Contains("/unhuify")))
             {
-                var reply = activity.CreateReply();
-                reply.Text = "Хуятор успешно активирован.";
-                reply.Locale = "ru";
-                await connector.Conversations.ReplyToActivityAsync(reply);
-                _state[conversationId] = true;
-            }
-            else if (activity.MentionsId(BotId) && messageText.ToLower().Contains("/unhuify"))
-            {
-                var reply = activity.CreateReply();
-                reply.Text = "Хуятор успешно деактивирован.";
-                reply.Locale = "ru";
-                await connector.Conversations.ReplyToActivityAsync(reply);
-                _state[conversationId] = false;
-            }
-            else if (activity.MentionsId(BotId) && messageText.ToLower().Contains("/status"))
-            {
-                var state = _state.ContainsKey(conversationId) ? _state[conversationId] : (bool?)null;
-                var currentDelay = _delay.ContainsKey(conversationId) ? _delay[conversationId] : (int?) null;
-                var delaySettings = _delaySettings.ContainsKey(conversationId) ? _delaySettings[conversationId] : null;
-
-                var reply = activity.CreateReply();
-                if (!state.HasValue)
-                {
-                    reply.Text = "Хуятор не инициализирован." + Environment.NewLine;
-                }
-                else if (state.Value)
-                {
-                    reply.Text = "Хуятор активирован." + Environment.NewLine;
-                }
-                else
-                {
-                    reply.Text = "Хуятор не активирован." + Environment.NewLine;
-                }
-
-                if (!currentDelay.HasValue)
-                {
-                    reply.Text += "Я не знаю когда отреагирую в следующий раз." + Environment.NewLine;
-                }
-                else
-                {
-                    reply.Text += $"В следующий раз я отреагирую через {currentDelay.Value} сообщений" + Environment.NewLine;
-                }
-
-                if (delaySettings == null)
-                {
-                    reply.Text += "Настройки задержки не найдены. Использую стандартные от 0 до 4 сообщений.";
-                }
-                else
-                {
-                    reply.Text += $"Сейчас я пропускаю случайное число сообщений от {delaySettings.Item1} до {delaySettings.Item2}";
-                }
-
-                await connector.Conversations.ReplyToActivityAsync(reply);
+                var delayAdapter = new StatusAdapter(connector);
+                await delayAdapter.Process(activity);
             }
             else if (messageText.ToLower().Contains("слава роботам"))
             {
                 var reply = activity.CreateReply();
 
                 var foo = _rnd.Next();
-                if (foo%2 == 0)
+                if (foo % 2 == 0)
                 {
                     var user = activity.From?.Name;
                     reply.Text = (!string.IsNullOrEmpty(user) ? $"@{user} " : "") + "Воистину слава!";
-                    reply.Locale = "ru";                    
+                    reply.Locale = "ru";
                 }
                 else
                 {
@@ -221,77 +117,48 @@ namespace UKLepraBot
                 };
                 reply.ChannelData = channelData;
                 await connector.Conversations.ReplyToActivityAsync(reply);
-            }/*
-            else if(messageText.ToLower().Contains("/secret") && activity.Conversation.Id == "178846839")
+            }
+            else
             {
-                
-            }*/
-            else if(_state.ContainsKey(conversationId) && _state[conversationId])
-            {
-                if (_delay.ContainsKey(conversationId))
-                    _delay[conversationId] -= 1;
-                else
+                var state = WebApiApplication.ChatSettings.State;
+                var delay = WebApiApplication.ChatSettings.Delay;
+                var delaySettings = WebApiApplication.ChatSettings.DelaySettings;
+                if (state.ContainsKey(conversationId) && state[conversationId])
                 {
-                    Tuple<int, int> delaySetting;
-                    if (_delaySettings.TryGetValue(conversationId, out delaySetting))
+                    if (delay.ContainsKey(conversationId))
                     {
-                        _delay[conversationId] = _rnd.Next(delaySetting.Item1, delaySetting.Item2 + 1);
+                        delay[conversationId] -= 1;
                     }
                     else
                     {
-                        _delay[conversationId] = _rnd.Next(4);
+                        Tuple<int, int> delaySetting;
+                        if (delaySettings.TryGetValue(conversationId, out delaySetting))
+                        {
+                            delay[conversationId] = _rnd.Next(delaySetting.Item1, delaySetting.Item2 + 1);
+                        }
+                        else
+                        {
+                            delay[conversationId] = _rnd.Next(4);
+                        }
                     }
-                }
 
-                if (_delay[conversationId] == 0)
-                {
-                    _delay.Remove(conversationId);
-                    var huifiedMessage = Huify.HuifyMe(messageText);
-                    if (!String.IsNullOrEmpty(huifiedMessage))
+                    if (delay[conversationId] == 0)
                     {
-                        var reply = activity.CreateReply();
-                        reply.Text = huifiedMessage;
-                        reply.Locale = "ru";
-                        await connector.Conversations.ReplyToActivityAsync(reply);
+                        delay.Remove(conversationId);
+                        var huifiedMessage = Huify.HuifyMe(messageText);
+                        if (!String.IsNullOrEmpty(huifiedMessage))
+                        {
+                            var reply = activity.CreateReply();
+                            reply.Text = huifiedMessage;
+                            reply.Locale = "ru";
+                            await connector.Conversations.ReplyToActivityAsync(reply);
+                        }
                     }
                 }
-
-            }
-
-            /*  
-            if (messageText.Contains("/start"))
-            {
-                _isActive = true;
-                var reply = activity.CreateReply("Bot is active.");
-                await Connector.Conversations.ReplyToActivityAsync(reply);
-            }
-            else if (messageText.Contains("/stop"))
-            {
-                _isActive = false;
-                var reply = activity.CreateReply("Bot is inactive.");
-                await Connector.Conversations.ReplyToActivityAsync(reply);
-            }
-            else if (messageText.Contains("/echo"))
-            {
-                _isEchoMode = !_isEchoMode;
-                var reply = activity.CreateReply("Echo mode is " + (_isEchoMode ? "active" : "inactive") + ".");
-                await Connector.Conversations.ReplyToActivityAsync(reply);
-            }
-            else if (messageText.Contains("/status"))
-            {
-                var reply = activity.CreateReply("Bot is "+ (_isActive ? "active":"inactive") +". Echo mode is " + (_isEchoMode ? "active" : "inactive") + ".");
-                await Connector.Conversations.ReplyToActivityAsync(reply);
-            }
-            else if (_isEchoMode)
-            {
-                var reply = activity.CreateReply(messageText);
-                await Connector.Conversations.ReplyToActivityAsync(reply);
-            }*/
-
-            return;
+            }            
         }
 
-        private async Task<APIResponse> HandleConversationUpdate(Activity activity)
+        private async Task<Activity> HandleConversationUpdate(Activity activity)
         {
             if (!_isActive) return null;
 
@@ -301,8 +168,8 @@ namespace UKLepraBot
             {
                 var tBot = new ChannelAccount
                 {
-                    Id = BotId,
-                    Name = BotId,
+                    Id = TelegramBotId,
+                    Name = TelegramBotId,
                 };
                 var name = string.Empty;
                 if (activity.MembersAdded != null && activity.MembersAdded.Any())
@@ -344,6 +211,36 @@ namespace UKLepraBot
 
             return null;
         }
+
+        private bool MentionsId(Activity activity, string id)
+        {
+            return activity.Text.Contains($"@{id}");
+        }
+
+        private async void ReportException(Exception exception)
+        {
+            var tBot = new ChannelAccount
+            {
+                Id = TelegramBotId,
+                Name = TelegramBotId,
+            };
+
+            var managementChatId = ConfigurationManager.AppSettings["ManagementChatId"];
+            var managementChatName = ConfigurationManager.AppSettings["ManagementChatName"];
+
+            var reply = new Activity
+            {
+                From = tBot,
+                Type = ActivityTypes.Message,
+                Conversation = new ConversationAccount(true, managementChatId, managementChatName),
+                Timestamp = DateTime.Now,
+                Text = $"Exception! {exception.Message} || {exception.StackTrace}"
+            };
+
+            var connector = new ConnectorClient(new Uri("https://telegram.botframework.com"));
+
+            await connector.Conversations.SendToConversationAsync(reply);
+        }
     }
 
     public class Sticker
@@ -364,5 +261,5 @@ namespace UKLepraBot
     {
         public string method { get; set; }
         public Parameters parameters { get; set; }
-    }    
+    }
 }
