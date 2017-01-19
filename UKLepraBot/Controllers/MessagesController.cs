@@ -11,13 +11,13 @@ using System.Web.Http.Description;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
+using UKLepraBot.MessageAdapters;
 
 namespace UKLepraBot
 {
     [BotAuthentication]
     public class MessagesController : ApiController
     {
-        private const string TelegramBotId = "ukleprabot";
         private static bool _isActive = true;
         private static Random _rnd = new Random();
 
@@ -54,108 +54,15 @@ namespace UKLepraBot
         private async Task HandleMessage(Activity activity)
         {
             var messageText = Convert.ToString(activity.Text);
-            var conversationId = activity.Conversation.Id;
+
             if (string.IsNullOrEmpty(messageText)) return;
+            if(!MentionsId(activity, WebApiApplication.TelegramBotId)) return;
 
-            var connector = new ConnectorClient(new Uri(activity.ServiceUrl));           
+            var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
+            var messageAdapterFactory = new MessageAdapterFactory(connector);
 
-            if (MentionsId(activity, TelegramBotId) && messageText.ToLower().Contains("/delay"))
-            {
-                var delayAdapter = new DelayAdapter(connector);
-                await delayAdapter.Process(activity);
-            }
-            else if (MentionsId(activity, TelegramBotId) && (messageText.ToLower().Contains("/status") || messageText.ToLower().Contains("/huify") || messageText.ToLower().Contains("/unhuify")))
-            {
-                var delayAdapter = new StatusAdapter(connector);
-                await delayAdapter.Process(activity);
-            }
-            else if (messageText.ToLower().Contains("слава роботам"))
-            {
-                var reply = activity.CreateReply();
-
-                var foo = _rnd.Next();
-                if (foo % 2 == 0)
-                {
-                    var user = activity.From?.Name;
-                    reply.Text = (!string.IsNullOrEmpty(user) ? $"@{user} " : "") + "Воистину слава!";
-                    reply.Locale = "ru";
-                }
-                else
-                {
-                    var channelData = new ChannelData
-                    {
-                        method = "sendSticker",
-                        parameters = new Parameters
-                        {
-                            sticker = "BQADBAADHQADmDVxAh2h6gc7L-sLAg"
-                        }
-                    };
-                    reply.ChannelData = channelData;
-                }
-                await connector.Conversations.ReplyToActivityAsync(reply);
-            }
-            else if (messageText.ToLower().Contains("брексит") || messageText.ToLower().Contains("брекзит") || messageText.ToLower().Contains("brexit"))
-            {
-                var reply = activity.CreateReply();
-
-                var foo = _rnd.Next(0, 2);
-                var sticker = string.Empty;
-                if (foo == 0)
-                    sticker = "BQADBAADgwADe9a5BsXsWEDlCe3bAg";
-                else if (foo == 1)
-                    sticker = "BQADBAADiQADe9a5BiskCu-ELBwsAg";
-                else if (foo == 2)
-                    sticker = "BQADBAADiwADe9a5BlEg69510dKIAg";
-
-                var channelData = new ChannelData
-                {
-                    method = "sendSticker",
-                    parameters = new Parameters
-                    {
-                        sticker = sticker
-                    }
-                };
-                reply.ChannelData = channelData;
-                await connector.Conversations.ReplyToActivityAsync(reply);
-            }
-            else
-            {
-                var state = WebApiApplication.ChatSettings.State;
-                var delay = WebApiApplication.ChatSettings.Delay;
-                var delaySettings = WebApiApplication.ChatSettings.DelaySettings;
-                if (state.ContainsKey(conversationId) && state[conversationId])
-                {
-                    if (delay.ContainsKey(conversationId))
-                    {
-                        delay[conversationId] -= 1;
-                    }
-                    else
-                    {
-                        Tuple<int, int> delaySetting;
-                        if (delaySettings.TryGetValue(conversationId, out delaySetting))
-                        {
-                            delay[conversationId] = _rnd.Next(delaySetting.Item1, delaySetting.Item2 + 1);
-                        }
-                        else
-                        {
-                            delay[conversationId] = _rnd.Next(4);
-                        }
-                    }
-
-                    if (delay[conversationId] == 0)
-                    {
-                        delay.Remove(conversationId);
-                        var huifiedMessage = Huify.HuifyMe(messageText);
-                        if (!String.IsNullOrEmpty(huifiedMessage))
-                        {
-                            var reply = activity.CreateReply();
-                            reply.Text = huifiedMessage;
-                            reply.Locale = "ru";
-                            await connector.Conversations.ReplyToActivityAsync(reply);
-                        }
-                    }
-                }
-            }            
+            var messageAdapter = messageAdapterFactory.CreateAdapter(activity);
+            await messageAdapter.Process(activity);
         }
 
         private async Task<Activity> HandleConversationUpdate(Activity activity)
@@ -168,8 +75,8 @@ namespace UKLepraBot
             {
                 var tBot = new ChannelAccount
                 {
-                    Id = TelegramBotId,
-                    Name = TelegramBotId,
+                    Id = WebApiApplication.TelegramBotId,
+                    Name = WebApiApplication.TelegramBotId,
                 };
                 var name = string.Empty;
                 if (activity.MembersAdded != null && activity.MembersAdded.Any())
@@ -212,17 +119,12 @@ namespace UKLepraBot
             return null;
         }
 
-        private bool MentionsId(Activity activity, string id)
-        {
-            return activity.Text.Contains($"@{id}");
-        }
-
         private async void ReportException(Exception exception)
         {
             var tBot = new ChannelAccount
             {
-                Id = TelegramBotId,
-                Name = TelegramBotId,
+                Id = WebApiApplication.TelegramBotId,
+                Name = WebApiApplication.TelegramBotId,
             };
 
             var managementChatId = ConfigurationManager.AppSettings["ManagementChatId"];
@@ -241,6 +143,12 @@ namespace UKLepraBot
 
             await connector.Conversations.SendToConversationAsync(reply);
         }
+
+        private bool MentionsId(Activity activity, string id)
+        {
+            return activity.Text.Contains($"@{id}");
+        }
+
     }
 
     public class Sticker

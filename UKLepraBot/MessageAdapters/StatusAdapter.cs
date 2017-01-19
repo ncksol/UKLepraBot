@@ -1,24 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using Microsoft.Bot.Connector;
 
-namespace UKLepraBot
+namespace UKLepraBot.MessageAdapters
 {
-    public class StatusAdapter
+    public class StatusAdapter: MessageAdapterBase
     {
-        private readonly IConnectorClient _connector;
-        private readonly Random _rnd;
-
-        public StatusAdapter(IConnectorClient connector)
+        public StatusAdapter(IConnectorClient connector) : base(connector)
         {
-            _connector = connector;
-            _rnd = new Random();
         }
 
-        public async Task Process(Activity activity)
+        public override async Task Process(Activity activity)
         {
             var messageText = activity.Text;
             var conversationId = activity.Conversation.Id;
@@ -43,11 +36,11 @@ namespace UKLepraBot
 
                 if (delaySettings != null)
                 {
-                    WebApiApplication.ChatSettings.Delay[conversationId] = _rnd.Next(delaySettings.Item1, delaySettings.Item2 + 1);
+                    WebApiApplication.ChatSettings.Delay[conversationId] = Rnd.Next(delaySettings.Item1, delaySettings.Item2 + 1);
                 }
                 else
                 {
-                    WebApiApplication.ChatSettings.Delay[conversationId] = _rnd.Next(4);
+                    WebApiApplication.ChatSettings.Delay[conversationId] = Rnd.Next(4);
                 }
             }
             else if (messageText.ToLower().Contains("/unhuify"))
@@ -90,8 +83,14 @@ namespace UKLepraBot
                         $"Сейчас я пропускаю случайное число сообщений от {delaySettings.Item1} до {delaySettings.Item2}";
                 }
             }
+            else if (messageText.ToLower().Contains("/uptime"))
+            {
+                var uptime = DateTimeOffset.UtcNow - WebApiApplication.StartupTime;
+                reply.Text =
+                    $"Uptime: {uptime.TotalDays} days, {uptime.Hours} hours, {uptime.Minutes}, {uptime.Seconds} seconds.";
+            }
 
-            await _connector.Conversations.ReplyToActivityAsync(reply);
+            await Connector.Conversations.ReplyToActivityAsync(reply);
         }
     }
 }

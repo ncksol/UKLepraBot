@@ -1,22 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using Microsoft.Bot.Connector;
 
-namespace UKLepraBot
+namespace UKLepraBot.MessageAdapters
 {
-    public class DelayAdapter
+    public class DelayAdapter : MessageAdapterBase
     {
-        private readonly IConnectorClient _connector;
-
-        public DelayAdapter(IConnectorClient connector)
+        public DelayAdapter(IConnectorClient connector):base(connector)
         {
-            _connector = connector;
         }
 
-        public async Task Process(Activity activity)
+        public override async Task Process(Activity activity)
         {
             var messageText = activity.Text;
             var conversationId = activity.Conversation.Id;
@@ -76,7 +71,7 @@ namespace UKLepraBot
                 }
             }
 
-            await _connector.Conversations.ReplyToActivityAsync(reply);
+            await Connector.Conversations.ReplyToActivityAsync(reply);
         }
     }
 }
