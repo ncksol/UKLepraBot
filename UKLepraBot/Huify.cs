@@ -77,8 +77,10 @@ namespace UKLepraBot
                 return string.Empty;
 
             var postFix = prefixPattern.Replace(word, "");
+            if (postFix.Length < 3) return string.Empty;
+
             var foo = postFix.Substring(1, 1);
-            if (postFix.Length < 3 || word.Substring(2) == "ху" && rulesValues.Contains(foo))
+            if (word.Substring(2) == "ху" && rulesValues.Contains(foo))
             {
                 return string.Empty;
             }

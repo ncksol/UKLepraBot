@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web.Hosting;
 using System.Web.Http;
-using System.Web.Http.Description;
-using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
-using Newtonsoft.Json;
 using UKLepraBot.MessageAdapters;
 
 namespace UKLepraBot
@@ -18,29 +13,20 @@ namespace UKLepraBot
     [BotAuthentication]
     public class MessagesController : ApiController
     {
-        private static bool _isActive = true;
-        private static Random _rnd = new Random();
-
         /// <summary>
-        /// POST: api/Messages
-        /// Receive a message from a user and reply to it
+        ///     POST: api/Messages
+        ///     Receive a message from a user and reply to it
         /// </summary>
-        public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
+        public async Task<HttpResponseMessage> Post([FromBody] Activity activity)
         {
             try
             {
                 if (activity.Type == ActivityTypes.Message)
-                {
                     await HandleMessage(activity);
-                }
                 else if (activity.Type == ActivityTypes.ConversationUpdate)
-                {
                     await HandleConversationUpdate(activity);
-                }
                 else
-                {
                     HandleSystemMessage(activity);
-                }
             }
             catch (Exception e)
             {
@@ -56,7 +42,7 @@ namespace UKLepraBot
             var messageText = Convert.ToString(activity.Text);
 
             if (string.IsNullOrEmpty(messageText)) return;
-            if(!MentionsId(activity, WebApiApplication.TelegramBotId)) return;
+            if (!MentionsId(activity, WebApiApplication.TelegramBotId)) return;
 
             var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
             var messageAdapterFactory = new MessageAdapterFactory(connector);
@@ -67,8 +53,6 @@ namespace UKLepraBot
 
         private async Task<Activity> HandleConversationUpdate(Activity activity)
         {
-            if (!_isActive) return null;
-
             var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
 
             if (activity.MembersAdded != null && activity.MembersAdded.Any())
@@ -76,7 +60,7 @@ namespace UKLepraBot
                 var tBot = new ChannelAccount
                 {
                     Id = WebApiApplication.TelegramBotId,
-                    Name = WebApiApplication.TelegramBotId,
+                    Name = WebApiApplication.TelegramBotId
                 };
                 var name = string.Empty;
                 if (activity.MembersAdded != null && activity.MembersAdded.Any())
@@ -124,7 +108,7 @@ namespace UKLepraBot
             var tBot = new ChannelAccount
             {
                 Id = WebApiApplication.TelegramBotId,
-                Name = WebApiApplication.TelegramBotId,
+                Name = WebApiApplication.TelegramBotId
             };
 
             var managementChatId = ConfigurationManager.AppSettings["ManagementChatId"];
@@ -148,7 +132,6 @@ namespace UKLepraBot
         {
             return activity.Text.Contains($"@{id}");
         }
-
     }
 
     public class Sticker
