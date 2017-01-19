@@ -87,7 +87,7 @@ namespace UKLepraBot.MessageAdapters
             {
                 var uptime = DateTimeOffset.UtcNow - WebApiApplication.StartupTime;
                 reply.Text =
-                    $"Uptime: {uptime.TotalDays} days, {uptime.Hours} hours, {uptime.Minutes}, {uptime.Seconds} seconds.";
+                    $"Uptime: {(int)uptime.TotalDays} days, {uptime.Hours} hours, {uptime.Minutes} minutes, {uptime.Seconds} seconds.";
             }
 
             await Connector.Conversations.ReplyToActivityAsync(reply);
