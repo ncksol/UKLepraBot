@@ -21,17 +21,24 @@ namespace UKLepraBot.MessageAdapters
         {
             var messageText = Convert.ToString(activity.Text);
 
-            if (DelayAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
-                return new DelayAdapter(_connectorClient);
+            if (MentionsId(activity, WebApiApplication.TelegramBotId))
+            {
+                if (DelayAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
+                    return new DelayAdapter(_connectorClient);
 
-            if (StatusAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
-                return new StatusAdapter(_connectorClient);
+                if (StatusAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
+                    return new StatusAdapter(_connectorClient);
 
-            if (MiscAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
-                return new MiscAdapter(_connectorClient);
+                if (MiscAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
+                    return new MiscAdapter(_connectorClient);
+            }
 
             return new HuifyAdapter(_connectorClient);
         }
 
+        private bool MentionsId(Activity activity, string id)
+        {
+            return activity.Text.Contains($"@{id}");
+        }
     }
 }

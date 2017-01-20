@@ -42,7 +42,6 @@ namespace UKLepraBot
             var messageText = Convert.ToString(activity.Text);
 
             if (string.IsNullOrEmpty(messageText)) return;
-            if (!MentionsId(activity, WebApiApplication.TelegramBotId)) return;
 
             var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
             var messageAdapterFactory = new MessageAdapterFactory(connector);
@@ -128,10 +127,6 @@ namespace UKLepraBot
             await connector.Conversations.SendToConversationAsync(reply);
         }
 
-        private bool MentionsId(Activity activity, string id)
-        {
-            return activity.Text.Contains($"@{id}");
-        }
     }
 
     public class Sticker
