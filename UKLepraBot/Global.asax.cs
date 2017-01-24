@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 using System.Web;
 using System.Web.Http;
@@ -15,7 +16,8 @@ namespace UKLepraBot
         private static AzureStorageAdapter _azureStorageAdapter;
         private static DateTimeOffset _startupTime;
 
-        public const string TelegramBotId = "ukleprabot";
+        public static string TelegramBotId;
+        public static string TelegramBotName;
 
         public static ChatSettings ChatSettings
         {
@@ -44,20 +46,26 @@ namespace UKLepraBot
         public override void Init()
         {
             base.Init();
+            TelegramBotId = ConfigurationManager.AppSettings["TelegramBotId"];
+            TelegramBotName = ConfigurationManager.AppSettings["TelegramBotName"];
 
+#if !DEBUG
             _azureStorageAdapter = new AzureStorageAdapter();
+#endif
         }
 
         public override void Dispose()
         {
+#if !DEBUG
             var botSettingsString = JsonConvert.SerializeObject(ChatSettings);
             _azureStorageAdapter.SaveBlobToSettings("chatsettings.json", botSettingsString);
-
+#endif
             base.Dispose();
         }
 
         private static void LoadChatSettings()
         {
+#if !DEBUG
             var storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("StorageConnectionString"));
             var blobClient = storageAccount.CreateCloudBlobClient();
             var container = blobClient.GetContainerReference("settings");
@@ -65,7 +73,7 @@ namespace UKLepraBot
 
             var settingsString = _azureStorageAdapter.ReadBlobFromSettings("chatsettings.json");
             _chatSettings = JsonConvert.DeserializeObject<ChatSettings>(settingsString);
-
+#endif
             if (_chatSettings == null)
                 _chatSettings = new ChatSettings();
         }

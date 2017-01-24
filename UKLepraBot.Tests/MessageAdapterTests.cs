@@ -36,7 +36,7 @@ namespace UKLepraBot.Tests
             var activity = new Activity();
             activity.Text = "/status";
             var adapter = messageAdapterFactory.CreateAdapter(activity);
-            Assert.IsInstanceOfType(adapter, typeof(StatusAdapter));
+            Assert.IsInstanceOfType(adapter, typeof(CommandAdapter));
         }
 
         [TestMethod]
@@ -46,7 +46,7 @@ namespace UKLepraBot.Tests
             var activity = new Activity();
             activity.Text = "/huify";
             var adapter = messageAdapterFactory.CreateAdapter(activity);
-            Assert.IsInstanceOfType(adapter, typeof(StatusAdapter));
+            Assert.IsInstanceOfType(adapter, typeof(CommandAdapter));
         }
 
         [TestMethod]
@@ -56,7 +56,7 @@ namespace UKLepraBot.Tests
             var activity = new Activity();
             activity.Text = "/unhuify";
             var adapter = messageAdapterFactory.CreateAdapter(activity);
-            Assert.IsInstanceOfType(adapter, typeof(StatusAdapter));
+            Assert.IsInstanceOfType(adapter, typeof(CommandAdapter));
         }
 
         [TestMethod]
@@ -66,7 +66,7 @@ namespace UKLepraBot.Tests
             var activity = new Activity();
             activity.Text = "слава роботам";
             var adapter = messageAdapterFactory.CreateAdapter(activity);
-            Assert.IsInstanceOfType(adapter, typeof(MiscAdapter));
+            Assert.IsInstanceOfType(adapter, typeof(MessageAdapter));
         }
 
         [TestMethod]
@@ -92,7 +92,7 @@ namespace UKLepraBot.Tests
         {
             var testList = new List<string> {"/status", "/huify", "/unhuify", "/uptime"};
 
-            CollectionAssert.AreEquivalent(testList, MessageAdapterFactory.StatusAdapterActivators);
+            CollectionAssert.AreEquivalent(testList, MessageAdapterFactory.CommandAdapterActivators);
         }
 
         [TestMethod]

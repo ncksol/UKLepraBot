@@ -8,9 +8,7 @@ namespace UKLepraBot.MessageAdapters
     public class MessageAdapterFactory
     {
         private readonly IConnectorClient _connectorClient;
-        public static readonly List<string> DelayAdapterActivators = new List<string> {"/delay"};
-        public static readonly List<string> StatusAdapterActivators = new List<string> {"/status", "/huify", "/unhuify", "/uptime" };
-        public static readonly List<string> MiscAdapterActivators = new List<string> { "слава роботам", "брексит", "брекзит", "brexit" };
+        public static readonly List<string> CommandAdapterActivators = new List<string> {"/status", "/huify", "/unhuify", "/uptime", "/delay", "/secret" };
 
         public MessageAdapterFactory(IConnectorClient connectorClient)
         {
@@ -21,19 +19,10 @@ namespace UKLepraBot.MessageAdapters
         {
             var messageText = Convert.ToString(activity.Text);
 
-            if (MentionsId(activity, WebApiApplication.TelegramBotId))
-            {
-                if (DelayAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
-                    return new DelayAdapter(_connectorClient);
+            if (MentionsId(activity, WebApiApplication.TelegramBotId) && CommandAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
+                return new CommandAdapter(_connectorClient);
 
-                if (StatusAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
-                    return new StatusAdapter(_connectorClient);
-
-                if (MiscAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
-                    return new MiscAdapter(_connectorClient);
-            }
-
-            return new HuifyAdapter(_connectorClient);
+            return new MessageAdapter(_connectorClient);
         }
 
         private bool MentionsId(Activity activity, string id)

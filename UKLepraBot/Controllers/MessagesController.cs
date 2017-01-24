@@ -59,7 +59,7 @@ namespace UKLepraBot
                 var tBot = new ChannelAccount
                 {
                     Id = WebApiApplication.TelegramBotId,
-                    Name = WebApiApplication.TelegramBotId
+                    Name = WebApiApplication.TelegramBotName
                 };
                 var name = string.Empty;
                 if (activity.MembersAdded != null && activity.MembersAdded.Any())
@@ -107,17 +107,16 @@ namespace UKLepraBot
             var tBot = new ChannelAccount
             {
                 Id = WebApiApplication.TelegramBotId,
-                Name = WebApiApplication.TelegramBotId
+                Name = WebApiApplication.TelegramBotName
             };
 
             var managementChatId = ConfigurationManager.AppSettings["ManagementChatId"];
-            var managementChatName = ConfigurationManager.AppSettings["ManagementChatName"];
 
             var reply = new Activity
             {
                 From = tBot,
                 Type = ActivityTypes.Message,
-                Conversation = new ConversationAccount(true, managementChatId, managementChatName),
+                Conversation = new ConversationAccount(true, managementChatId),
                 Timestamp = DateTime.Now,
                 Text = $"Exception! {exception.Message} || {exception.StackTrace}"
             };
@@ -129,23 +128,4 @@ namespace UKLepraBot
 
     }
 
-    public class Sticker
-    {
-        public string url { get; set; }
-        public string mediaType { get; set; }
-        public string width { get; set; }
-        public string height { get; set; }
-        public string file_id { get; set; }
-    }
-
-    public class Parameters
-    {
-        public string sticker { get; set; }
-    }
-
-    public class ChannelData
-    {
-        public string method { get; set; }
-        public Parameters parameters { get; set; }
-    }
 }
