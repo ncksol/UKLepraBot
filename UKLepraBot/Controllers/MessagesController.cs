@@ -39,10 +39,6 @@ namespace UKLepraBot
 
         private async Task HandleMessage(Activity activity)
         {
-            var messageText = Convert.ToString(activity.Text);
-
-            if (string.IsNullOrEmpty(messageText)) return;
-
             var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
             var messageAdapterFactory = new MessageAdapterFactory(connector);
 

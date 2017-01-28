@@ -17,17 +17,11 @@ namespace UKLepraBot.MessageAdapters
 
         public MessageAdapterBase CreateAdapter(Activity activity)
         {
-            var messageText = Convert.ToString(activity.Text);
-
-            if (MentionsId(activity, WebApiApplication.TelegramBotId) && CommandAdapterActivators.Any(x => messageText.ToLower().Contains(x)))
+            if (HelperMethods.MentionsBot(activity) && !String.IsNullOrEmpty(activity.Text) && CommandAdapterActivators.Any(x => activity.Text.ToLower().Contains(x)))
                 return new CommandAdapter(_connectorClient);
 
             return new MessageAdapter(_connectorClient);
         }
 
-        private bool MentionsId(Activity activity, string id)
-        {
-            return activity.Text.Contains($"@{id}");
-        }
     }
 }

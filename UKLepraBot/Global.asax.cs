@@ -18,6 +18,7 @@ namespace UKLepraBot
 
         public static string TelegramBotId;
         public static string TelegramBotName;
+        public static string TelegramBotNumber;
 
         public static ChatSettings ChatSettings
         {
@@ -48,6 +49,7 @@ namespace UKLepraBot
             base.Init();
             TelegramBotId = ConfigurationManager.AppSettings["TelegramBotId"];
             TelegramBotName = ConfigurationManager.AppSettings["TelegramBotName"];
+            TelegramBotNumber = ConfigurationManager.AppSettings["TelegramBotNumber"];
 
 #if !DEBUG
             _azureStorageAdapter = new AzureStorageAdapter();
