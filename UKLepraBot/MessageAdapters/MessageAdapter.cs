@@ -26,19 +26,19 @@ namespace UKLepraBot.MessageAdapters
             var channelData = (JObject) activity.ChannelData;
             var messageData = JsonConvert.DeserializeObject<JsonModels.Message>(channelData["message"].ToString());
             
-            Activity reply;
+            Activity reply = null;
 
             if (_robotActivators.Any(messageText.Contains))
                 reply = ProcessSlavaRobotamMessage(activity);
-            else if (_brexitActivators.Any(messageText.Contains))
-                reply = ProcessBrexitMessage(activity);
+            //else if (_brexitActivators.Any(messageText.Contains))
+            //    reply = ProcessBrexitMessage(activity);
             else if (_politiciansActivators.Any(messageText.Contains) && HelperMethods.YesOrNo())
                 reply = ProcessPoliticiansNamesMessage(activity);
             else if (_rudeActivators.Any(messageText.Contains) && HelperMethods.MentionsBot(activity))
                 reply = ProcessRudeMessage(activity);
             else if ((_kissingEmojiActivators.Any(messageText.Contains) || (messageData.sticker != null && _kissingEmojiActivators.Any(messageData.sticker.emoji.Contains))) && HelperMethods.MentionsBot(activity))
                 reply = ProcessKissingMessage(activity);
-            else
+            else if(!string.IsNullOrEmpty(messageText))
                 reply = ProcessHuifyMessage(activity);
 
             if (reply == null) return;
