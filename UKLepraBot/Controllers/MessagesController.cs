@@ -71,6 +71,29 @@ namespace UKLepraBot
 
                 await connector.Conversations.SendToConversationAsync(reply);
             }
+            else if (activity.MembersRemoved != null && activity.MembersRemoved.Any())
+            {
+                var tBot = new ChannelAccount
+                {
+                    Id = WebApiApplication.TelegramBotId,
+                    Name = WebApiApplication.TelegramBotName
+                };
+
+                var reply = activity.CreateReply();
+                reply.From = tBot;
+
+                var channelData = new JsonModels.ChannelData
+                {
+                    method = "sendSticker",
+                    parameters = new JsonModels.Parameters
+                    {
+                        sticker = "CAADAgADXgEAAhmGAwABgntLLoS0m94C"
+                    }
+                };
+                reply.ChannelData = channelData;
+
+                await connector.Conversations.SendToConversationAsync(reply);
+            }
 
             return null;
         }
