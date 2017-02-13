@@ -13,7 +13,6 @@ namespace UKLepraBot.MessageAdapters
         private readonly string[] _brexitActivators = {"брексит", "брекзит", "brexit"};
         private readonly string[] _politiciansActivators = {"путин", "корбин", "навальный"};
         private readonly string[] _robotActivators = {"слава роботам"};
-        private readonly string[] _rudeActivators = {"пошел нахуй", "иди нахуй", "охуел", "пошёл нахуй", "нахуй пойди" };
         private readonly string[] _kissingEmojiActivators = {"😘", "😚", "😍" };
 
         public MessageAdapter(IConnectorClient connector) : base(connector)
@@ -34,7 +33,7 @@ namespace UKLepraBot.MessageAdapters
             //    reply = ProcessBrexitMessage(activity);
             else if (_politiciansActivators.Any(messageText.Contains) && HelperMethods.YesOrNo())
                 reply = ProcessPoliticiansNamesMessage(activity);
-            else if (_rudeActivators.Any(messageText.Contains) && HelperMethods.MentionsBot(activity))
+            else if (WebApiApplication.ActivatorsManager.RudeActivators.Any(messageText.Contains) && HelperMethods.MentionsBot(activity))
                 reply = ProcessRudeMessage(activity);
             else if ((_kissingEmojiActivators.Any(messageText.Contains) || (messageData.sticker != null && _kissingEmojiActivators.Any(messageData.sticker.emoji.Contains))) && HelperMethods.MentionsBot(activity))
                 reply = ProcessKissingMessage(activity);
