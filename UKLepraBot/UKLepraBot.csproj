@@ -138,6 +138,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActivatorsManager.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="AzureStorageAdapter.cs" />
     <Compile Include="ChatSettings.cs" />

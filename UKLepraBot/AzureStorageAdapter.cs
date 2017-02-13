@@ -17,8 +17,9 @@ namespace UKLepraBot
             var storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("StorageConnectionString"));
             var blobClient = storageAccount.CreateCloudBlobClient();
             _settingsContainer = blobClient.GetContainerReference("settings");
+            _settingsContainer.CreateIfNotExists();
         }
-
+        
         public string ReadBlobFromSettings(string blobName)
         {
             var blockBlob = _settingsContainer.GetBlockBlobReference(blobName);

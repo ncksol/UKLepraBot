@@ -41,11 +41,19 @@ namespace UKLepraBot.MessageAdapters
                 reply = DelayCommand(activity);
             else if (messageText.ToLower().Contains("/secret"))
                 await SecretCommand(activity);
-            else
+            else if (messageText.ToLower().Contains("/reload"))
+            {
+                ReloadActivatorsCommand();
                 return;
+            }
 
             if(reply != null)
                 await Connector.Conversations.ReplyToActivityAsync(reply);
+        }
+
+        private void ReloadActivatorsCommand()
+        {
+            WebApiApplication.ActivatorsManager.ReloadActivators();
         }
 
         private Activity DelayCommand(Activity activity)
