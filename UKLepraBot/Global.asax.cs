@@ -14,11 +14,11 @@ namespace UKLepraBot
         public static string TelegramBotName;
         public static string TelegramBotNumber;
         private static AzureStorageAdapter _azureStorageAdapter;
-        private static ActivatorsManager _activatorsManager;
+        private static ReactionsManager _reactionsManager;
 
         public static AzureStorageAdapter AzureStorageAdapter => _azureStorageAdapter ?? (_azureStorageAdapter = new AzureStorageAdapter());
 
-        public static ActivatorsManager ActivatorsManager => _activatorsManager ?? (_activatorsManager = new ActivatorsManager());
+        public static ReactionsManager ReactionsManager => _reactionsManager ?? (_reactionsManager = new ReactionsManager());
 
         public static ChatSettings ChatSettings
         {
@@ -49,19 +49,15 @@ namespace UKLepraBot
 
         public override void Dispose()
         {
-#if !DEBUG
             var botSettingsString = JsonConvert.SerializeObject(ChatSettings);
             AzureStorageAdapter.SaveBlobToSettings("chatsettings.json", botSettingsString);
-#endif
             base.Dispose();
         }
 
         private static void LoadChatSettings()
         {
-#if !DEBUG
             var settingsString = AzureStorageAdapter.ReadBlobFromSettings("chatsettings.json");
             _chatSettings = JsonConvert.DeserializeObject<ChatSettings>(settingsString);
-#endif
             if (_chatSettings == null)
                 _chatSettings = new ChatSettings();
         }

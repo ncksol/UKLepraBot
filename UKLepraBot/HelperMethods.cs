@@ -16,6 +16,12 @@ namespace UKLepraBot
             return rnd.Next() % 2 == 0;
         }
 
+        public static int RandomInt(int max)
+        {
+            var rnd = new Random();
+            return rnd.Next(max);
+        }
+
         public static bool MentionsId(Activity activity, string id)
         {
             var channelData = (JObject)activity.ChannelData;

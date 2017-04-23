@@ -1,0 +1,23 @@
+﻿{
+  "items": [
+    {
+      "triggers": [ "путин" ],
+      "replies": [ { "text": "путин - хуютин" } ]
+    },
+    {
+      "triggers": [ "корбин" ],
+      "replies": [ { "text": "корбин - хуёрбин" } ]
+    },
+    {
+      "triggers": [ "навальный" ],
+      "replies": [ { "text": "навальный - овальный" } ]
+    },
+    {
+      "triggers": [ "слава роботам" ],
+      "replies": [
+        { "text": "Воистину слава!" },
+        { "sticker": "BQADBAADHQADmDVxAh2h6gc7L-sLAg" }
+      ]
+    }
+  ]
+}

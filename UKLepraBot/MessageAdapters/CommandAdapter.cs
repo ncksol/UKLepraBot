@@ -43,7 +43,7 @@ namespace UKLepraBot.MessageAdapters
                 await SecretCommand(activity);
             else if (messageText.ToLower().Contains("/reload"))
             {
-                ReloadActivatorsCommand();
+                ReloadReactionsCommand();
                 return;
             }
 
@@ -51,9 +51,9 @@ namespace UKLepraBot.MessageAdapters
                 await Connector.Conversations.ReplyToActivityAsync(reply);
         }
 
-        private void ReloadActivatorsCommand()
+        private void ReloadReactionsCommand()
         {
-            WebApiApplication.ActivatorsManager.ReloadActivators();
+            WebApiApplication.ReactionsManager.ReloadReactions();
         }
 
         private Activity DelayCommand(Activity activity)

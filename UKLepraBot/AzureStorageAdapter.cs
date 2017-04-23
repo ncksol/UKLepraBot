@@ -14,7 +14,7 @@ namespace UKLepraBot
 
         public AzureStorageAdapter()
         {
-            var storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("StorageConnectionString"));
+            var storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("StorageConnectionString"));            
             var blobClient = storageAccount.CreateCloudBlobClient();
             _settingsContainer = blobClient.GetContainerReference("settings");
             _settingsContainer.CreateIfNotExists();
@@ -31,7 +31,7 @@ namespace UKLepraBot
 
         public void SaveBlobToSettings(string blobName, string content)
         {
-            var blockBlob = _settingsContainer.GetBlockBlobReference(blobName);
+            var blockBlob = _settingsContainer.GetBlockBlobReference(blobName);            
             blockBlob.UploadText(content);
         }
     }
