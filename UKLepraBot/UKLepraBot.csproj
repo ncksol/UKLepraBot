@@ -162,7 +162,6 @@
   <ItemGroup>
     <Content Include="packages.config" />
     <Content Include="Connected Services\ukleprabotAzureStorage\ConnectedService.json" />
-    <Content Include="activators.json" />
     <None Include="Properties\PublishProfiles\BotApplication320161208062422 - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\BotApplication320161208062422 - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\UKLepraBot - FTP.pubxml" />
