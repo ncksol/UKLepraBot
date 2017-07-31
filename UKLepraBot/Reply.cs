@@ -21,24 +21,24 @@ namespace UKLepraBot
 
                 if (replyToUser)
                 {
-                    var entity = new Entity();
-                    entity.SetAs(new Mention
-                    {
-                        Text = replyText,
-                        Mentioned = new ChannelAccount
-                        {
-                            Name = activity.From?.Name,
-                            Id = activity.From?.Id
-                        }
-                    });
+                    //var entity = new Entity();
+                    //entity.SetAs(new Mention
+                    //{
+                    //    Text = replyText,
+                    //    Mentioned = new ChannelAccount
+                    //    {
+                    //        Name = activity.From?.Name,
+                    //        Id = activity.From?.Id
+                    //    }
+                    //});
 
-                    //var user = activity.From?.Name;
-                    //replyText = (!string.IsNullOrEmpty(user) ? $"@{user} {Text}" : $"{Text}");
-                    reply.Entities.Add(entity);
+                    var user = activity.From?.Name;
+                    replyText = (!string.IsNullOrEmpty(user) ? $"@{user} {Text}" : $"{Text}");
+                    //reply.Entities.Add(entity);
                     
                 }
 
-                //reply.Text = replyText;
+                reply.Text = replyText;
             }
             else if (!string.IsNullOrEmpty(Sticker))
             {
