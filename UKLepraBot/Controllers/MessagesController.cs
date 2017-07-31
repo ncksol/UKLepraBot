@@ -123,26 +123,29 @@ namespace UKLepraBot
 
         private async void ReportException(Exception exception)
         {
-            var tBot = new ChannelAccount
-            {
-                Id = WebApiApplication.TelegramBotId,
-                Name = WebApiApplication.TelegramBotName
-            };
+            //var tBot = new ChannelAccount
+            //{
+            //    Id = WebApiApplication.TelegramBotId,
+            //    Name = WebApiApplication.TelegramBotName
+            //};
 
-            var managementChatId = ConfigurationManager.AppSettings["ManagementChatId"];
+            //var managementChatId = ConfigurationManager.AppSettings["ManagementChatId"];
 
-            var reply = new Activity
-            {
-                From = tBot,
-                Type = ActivityTypes.Message,
-                Conversation = new ConversationAccount(true, managementChatId),
-                Timestamp = DateTime.Now,
-                Text = $"Exception! {exception.Message} || {exception.StackTrace}"
-            };
+            //var reply = new Activity
+            //{
+            //    From = tBot,
+            //    Type = ActivityTypes.Message,
+            //    Conversation = new ConversationAccount(true, managementChatId),
+            //    Timestamp = DateTime.Now,
+            //    Text = $"Exception! {exception.Message} || {exception.StackTrace}"
+            //};
 
-            var connector = new ConnectorClient(new Uri("https://telegram.botframework.com"));
+            //var connector = new ConnectorClient(new Uri("https://telegram.botframework.com"));
 
-            await connector.Conversations.SendToConversationAsync(reply);
+            //await connector.Conversations.SendToConversationAsync(reply);
+
+            System.Diagnostics.Trace.TraceError(exception.Message);
+            System.Diagnostics.Trace.TraceError(exception.StackTrace);
         }
 
     }
