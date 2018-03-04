@@ -8,7 +8,7 @@ namespace UKLepraBot.MessageAdapters
     public class MessageAdapterFactory
     {
         private readonly IConnectorClient _connectorClient;
-        public static readonly List<string> CommandAdapterActivators = new List<string> {"/status", "/huify", "/unhuify", "/uptime", "/delay", "/secret", "/reload" };
+        public static readonly List<string> CommandAdapterActivators = new List<string> {"/status", "/huify", "/unhuify", "/uptime", "/delay", "/secret", "/reload", "/lmgtfy" };
 
         public MessageAdapterFactory(IConnectorClient connectorClient)
         {

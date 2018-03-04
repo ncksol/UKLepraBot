@@ -41,6 +41,8 @@ namespace UKLepraBot.MessageAdapters
                 reply = DelayCommand(activity);
             else if (messageText.ToLower().Contains("/secret"))
                 await SecretCommand(activity);
+            else if (messageText.ToLower().Contains("/lmgtfy"))
+                reply = GoogleCommand(activity);
             else if (messageText.ToLower().Contains("/reload"))
             {
                 ReloadReactionsCommand();
@@ -50,6 +52,22 @@ namespace UKLepraBot.MessageAdapters
             if(reply != null)
                 await Connector.Conversations.ReplyToActivityAsync(reply);
         }
+
+        private Activity GoogleCommand(Activity activity)
+        {
+            var messageText = activity.Text;
+
+            var reply = activity.CreateReply();            
+            var messageParts = messageText.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (messageParts.Length == 1) return null;
+
+            var query = String.Join("%20", messageParts.Skip(1));
+            reply.Text = $"http://lmgtfy.com/?q={query}";
+
+            return reply;
+        }
+        
 
         private void ReloadReactionsCommand()
         {

@@ -65,10 +65,10 @@ namespace UKLepraBot.MessageAdapters
             var huifiedMessage = Huify.HuifyMe(messageText);
             if (string.IsNullOrEmpty(huifiedMessage)) return null;
 
-            var reply = activity.CreateReply();
+            var reply = new Reply();
             reply.Text = huifiedMessage;
-            reply.Locale = "ru";
-            return reply;
+            
+            return reply.CreateReplyActivity(activity, true);
         }
     }
 }
