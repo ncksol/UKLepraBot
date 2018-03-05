@@ -177,6 +177,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MessageAdapters\AIAdapter.cs" />
     <Compile Include="Reaction.cs" />
     <Compile Include="ReactionsManager.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
