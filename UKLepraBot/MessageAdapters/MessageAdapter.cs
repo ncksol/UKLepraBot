@@ -68,7 +68,7 @@ namespace UKLepraBot.MessageAdapters
             var reply = new Reply();
             reply.Text = huifiedMessage;
             
-            return reply.CreateReplyActivity(activity, true);
+            return reply.CreateReplyActivity(activity);
         }
     }
 }
