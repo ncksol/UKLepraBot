@@ -114,14 +114,11 @@ namespace UKLepraBot
             {
                 // Handle knowing tha the user is typing
             }
-            else if (message.Type == ActivityTypes.Ping)
-            {
-            }
 
             return null;
         }
 
-        private async void ReportException(Exception exception)
+        private void ReportException(Exception exception)
         {
             //var tBot = new ChannelAccount
             //{

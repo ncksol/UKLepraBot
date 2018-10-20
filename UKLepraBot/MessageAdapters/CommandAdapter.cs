@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
@@ -76,12 +77,19 @@ namespace UKLepraBot.MessageAdapters
 
         private Activity DelayCommand(Activity activity)
         {
+            var reply = activity.CreateReply();
+            reply.Locale = "ru";
+
+            if(VerifyAdminCommandAccess(activity) == false)
+            {
+                reply.Text = GetAcccessDeniedCommandText();
+                return reply;
+            }
+
             var messageText = activity.Text;
             var conversationId = activity.Conversation.Id;
             var delaySettings = WebApiApplication.ChatSettings.DelaySettings;
 
-            var reply = activity.CreateReply();
-            reply.Locale = "ru";
             var messageParts = messageText.Split(new[] {" "}, StringSplitOptions.RemoveEmptyEntries);
             if (messageParts.Length == 1)
             {
@@ -174,20 +182,46 @@ namespace UKLepraBot.MessageAdapters
             return reply;
         }
 
-        private static Activity StopHuifyCommand(Activity activity, string conversationId)
+        private Activity StopHuifyCommand(Activity activity, string conversationId)
         {
             var reply = activity.CreateReply();
             reply.Locale = "ru";
+
+            if(VerifyAdminCommandAccess(activity) == false)
+            {
+                reply.Text = GetAcccessDeniedCommandText();
+                return reply;
+            }
 
             reply.Text = "Хуятор успешно деактивирован.";
             WebApiApplication.ChatSettings.State[conversationId] = false;
             return reply;
         }
 
+        private bool VerifyAdminCommandAccess(Activity activity)
+        {
+            var masterId = ConfigurationManager.AppSettings["MasterId"];
+            var adminIds = ConfigurationManager.AppSettings["AdminIds"]?.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList() ?? new List<string>();
+            adminIds.Add(masterId);
+
+            return adminIds.Contains(activity.From.Id);
+        }
+
+        private string GetAcccessDeniedCommandText()
+        {
+            return "Не положено холопам королеве указывать!";
+        }
+
         private Activity StartHuifyCommand(Activity activity, string conversationId, Tuple<int, int> delaySettings)
         {
             var reply = activity.CreateReply();
             reply.Locale = "ru";
+
+            if(VerifyAdminCommandAccess(activity) == false)
+            {
+                reply.Text = GetAcccessDeniedCommandText();
+                return reply;
+            }
 
             reply.Text = "Хуятор успешно активирован.";
             WebApiApplication.ChatSettings.State[conversationId] = true;
